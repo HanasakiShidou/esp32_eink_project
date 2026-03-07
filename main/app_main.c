@@ -15,6 +15,7 @@
 #include "protocol_examples_common.h"
 #include "esp_log.h"
 #include "mqtt_client.h"
+#include "epaper_demo.h"
 
 static const char *TAG = "mqtt5_example";
 
@@ -47,18 +48,6 @@ static esp_mqtt5_subscribe_property_config_t subscribe_property = {
     .no_local_flag = false,
     .retain_as_published_flag = false,
     .retain_handle = 0,
-    .is_share_subscribe = true,
-    .share_name = "group1",
-};
-
-static esp_mqtt5_subscribe_property_config_t subscribe1_property = {
-    .subscribe_id = 25555,
-    .no_local_flag = true,
-    .retain_as_published_flag = false,
-    .retain_handle = 0,
-};
-
-static esp_mqtt5_unsubscribe_property_config_t unsubscribe_property = {
     .is_share_subscribe = true,
     .share_name = "group1",
 };
@@ -123,19 +112,6 @@ static void mqtt5_event_handler(void *handler_args, esp_event_base_t base, int32
         subscribe_property.user_property = NULL;
         ESP_LOGI(TAG, "sent subscribe successful, msg_id=%d", msg_id);
 
-        //esp_mqtt5_client_set_user_property(&subscribe1_property.user_property, user_property_arr, USE_PROPERTY_ARR_SIZE);
-        //esp_mqtt5_client_set_subscribe_property(client, &subscribe1_property);
-        //msg_id = esp_mqtt_client_subscribe(client, "/esp32c3test/qos1", 2);
-        //esp_mqtt5_client_delete_user_property(subscribe1_property.user_property);
-        //subscribe1_property.user_property = NULL;
-        //ESP_LOGI(TAG, "sent subscribe successful, msg_id=%d", msg_id);
-
-        //esp_mqtt5_client_set_user_property(&unsubscribe_property.user_property, user_property_arr, USE_PROPERTY_ARR_SIZE);
-        //esp_mqtt5_client_set_unsubscribe_property(client, &unsubscribe_property);
-        //msg_id = esp_mqtt_client_unsubscribe(client, "/esp32c3test/qos0");
-        //ESP_LOGI(TAG, "sent unsubscribe successful, msg_id=%d", msg_id);
-        //esp_mqtt5_client_delete_user_property(unsubscribe_property.user_property);
-        //unsubscribe_property.user_property = NULL;
         break;
     case MQTT_EVENT_DISCONNECTED:
         ESP_LOGI(TAG, "MQTT_EVENT_DISCONNECTED");
@@ -287,6 +263,8 @@ void app_main(void)
     ESP_ERROR_CHECK(example_connect());
 
     mqtt5_app_start();
+
+    startDemo();
 
     while(1) {
         vTaskDelay(pdMS_TO_TICKS(1000));

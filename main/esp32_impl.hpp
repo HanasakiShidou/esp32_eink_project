@@ -14,5 +14,6 @@ public:
     bool Available() override;
     ~Esp32Impl() override;
 private:
+    bool isReady{false};
 };
 
