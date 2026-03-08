@@ -3,6 +3,7 @@ file (GLOB SOURCES
     "../epd_cpp/lib/Fonts/*.c"
 #    "../epd_cpp/lib/GUI/*.c"
     "app_main.c"
+    "mqtt_app.c"
     "esp32_impl.cpp"
     "epaper_demo.cpp"
     )
