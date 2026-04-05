@@ -17,6 +17,8 @@
 #include "esp_netif.h"
 #include "protocol_examples_common.h"
 
+static const char *TAG = "EInkApp";
+
 void app_main(void)
 {
 

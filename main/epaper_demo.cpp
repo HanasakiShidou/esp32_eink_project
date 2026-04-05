@@ -1,5 +1,6 @@
 extern "C" {
 #include "epaper_demo.h"
+#include "mqtt_app.h" // For mqtt log
 }
 #include "esp32_impl.hpp"
 #include "esp_log.h"
@@ -66,6 +67,9 @@ int startDemo() {
     epd->Delay(5000);
 
     epd->Clear();
+
+    ESP_LOGI("ESP32Impl", "E-paper demo finished!");
+    mqtt_log(strdup("E-paper demo finished!"));
 
     return 0;
 }
