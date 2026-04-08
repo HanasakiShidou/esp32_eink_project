@@ -5,7 +5,8 @@ file (GLOB SOURCES
     "app_main.c"
     "mqtt_app.c"
     "esp32_impl.cpp"
-    "epaper_demo.cpp"
+    "SakataOnEsp32Server.cpp"
+    SakataOnEsp32ServerImpl.cpp
     )
 
 idf_component_register(SRCS ${SOURCES}

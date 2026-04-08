@@ -15,11 +15,7 @@
 
 static const char *TAG = "MQTT5";
 
-#define LOG_IDLE_TIMEOUT_MS   (10000)
-
-static QueueHandle_t s_publish_queue = NULL;
 static esp_mqtt_client_handle_t s_mqtt_client = NULL;
-static TaskHandle_t s_publish_task = NULL;
 
 enum MQTT_TOPIC {
     LOGGER,
@@ -38,70 +34,22 @@ static inline const char* topic_name(enum MQTT_TOPIC topic) {
     return (topic >= LOGGER && topic < TOPIC_COUNT) ? TOPIC_NAME[topic] : NULL;
 }
 
-struct PublishInfo {
-    enum MQTT_TOPIC topic;
-    void* publishData;
-};
-
-static int mqtt_publish(struct PublishInfo info) {
-    if (!s_publish_queue || !info.publishData) {
-        if (info.publishData) {
-            free(info.publishData);
-        }
-        return -1;
-    }
-
-    // 非阻塞发送到队列
-    if (xQueueSend(s_publish_queue, &info, 0) != pdTRUE) {
-        ESP_LOGW(TAG, "Publish queue full, dropping message");
-        free(info.publishData);
-        return -1;
-    }
-
-    // 如果任务处于挂起状态，则唤醒它
-    if (s_publish_task != NULL) {
-        if (eTaskGetState(s_publish_task) == eSuspended) {
-            // 注意：xTaskResume 不能在 ISR 中使用；此函数设计为从任务上下文调用
-            // 若日志接口可能被中断调用，需改用 xTaskResumeFromISR 并判断是否需要切换
-            vTaskResume(s_publish_task);
-        }
-    }
-    return 0;
-}
-
 void mqtt_log(char* msg) {
-    mqtt_publish((struct PublishInfo){LOGGER, msg});
+    if (msg == NULL)
+        return;
+    esp_mqtt_client_publish(s_mqtt_client, topic_name(LOGGER), msg, 0, 1, 0);
+    free(msg);
 }
 
-static void mqtt_publish_task(void *arg)
-{
-    struct PublishInfo info;
-    TickType_t idle_timeout_ticks = pdMS_TO_TICKS(LOG_IDLE_TIMEOUT_MS);
-
-    while (1) {
-        // 等待队列消息，带超时
-        BaseType_t rc = xQueueReceive(s_publish_queue, &info, idle_timeout_ticks);
-        if (rc == pdTRUE) {
-            // 收到消息，发布到 MQTT
-            if (s_mqtt_client) {
-                if (topic_name(info.topic) != NULL) {
-                    int msg_id = esp_mqtt_client_publish(s_mqtt_client, topic_name(info.topic), info.publishData, 0, 1, 0);
-                    if (msg_id == -1) {
-                        ESP_LOGW(TAG, "Failed to publish message");
-                    }
-                }
-            }
-            if (info.publishData != NULL) {
-                free(info.publishData);
-            }
-            // 继续循环，等待下一条消息
-        } else {
-            // 超时无新消息，挂起自身
-            ESP_LOGI(TAG, "Log task idle timeout, suspending");
-            vTaskSuspend(NULL);  // 挂起自己
-            // 当被恢复时，会从这里继续，重新进入循环等待消息
-        }
+void mqtt_send_response(char *data, int length) {
+    if (data == NULL)
+        return;
+    if (length == 0) {
+        free(data);
+        return;
     }
+    esp_mqtt_client_publish(s_mqtt_client, topic_name(LOGGER), data, length, 1, 0);
+    free(data);
 }
 
 static void log_error_if_nonzero(const char *message, int error_code)
@@ -110,15 +58,6 @@ static void log_error_if_nonzero(const char *message, int error_code)
         ESP_LOGE(TAG, "Last error %s: 0x%x", message, error_code);
     }
 }
-
-static esp_mqtt5_subscribe_property_config_t subscribe_property = {
-    .subscribe_id = 25555,
-    .no_local_flag = false,
-    .retain_as_published_flag = false,
-    .retain_handle = 0,
-    .is_share_subscribe = true,
-    .share_name = "group1",
-};
 
 /*
  * @brief Event handler registered to receive MQTT events
@@ -142,8 +81,6 @@ static void mqtt5_event_handler(void *handler_args, esp_event_base_t base, int32
     case MQTT_EVENT_CONNECTED:
         ESP_LOGI(TAG, "MQTT_EVENT_CONNECTED");
         mqtt_log(strdup("Clinet ESP32 online!"));
-
-        esp_mqtt5_client_set_subscribe_property(client, &subscribe_property);
         msg_id = esp_mqtt_client_subscribe(client, topic_name(RPC_REQUEST), 2);
         ESP_LOGI(TAG, "sent subscribe successful, msg_id=%d", msg_id);
         break;
@@ -219,12 +156,4 @@ void mqtt5_app_start(void)
     /* The last argument may be used to pass data to the event handler, in this example mqtt_event_handler */
     esp_mqtt_client_register_event(client, ESP_EVENT_ANY_ID, mqtt5_event_handler, NULL);
     esp_mqtt_client_start(client);
-
-    // 创建队列和日志任务
-    s_publish_queue = xQueueCreate(10, sizeof(struct PublishInfo));
-    if (s_publish_queue) {
-        xTaskCreate(mqtt_publish_task, "mqtt_publish", 4096, NULL, 5, &s_publish_task);
-    } else {
-        ESP_LOGE(TAG, "Failed to create mqtt publish queue");
-    }
 }

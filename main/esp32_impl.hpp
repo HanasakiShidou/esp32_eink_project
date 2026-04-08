@@ -1,5 +1,4 @@
 #include "hardwareapi.hpp"
-#include "epd_2in9v2.hpp"
 
 class Esp32Impl : public HardwareAPI
 {

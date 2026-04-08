@@ -8,8 +8,8 @@
 #include <stdint.h>
 #include <stddef.h>
 #include <string.h>
+#include "SakataOnEsp32ServerImpl.h"
 #include "mqtt_app.h"
-#include "epaper_demo.h"
 #include "esp_log.h"
 #include "esp_system.h"
 #include "nvs_flash.h"
@@ -45,8 +45,6 @@ void app_main(void)
     ESP_ERROR_CHECK(example_connect());
 
     mqtt5_app_start();
-
-    startDemo();
 
     while(1) {
         vTaskDelay(pdMS_TO_TICKS(1000));

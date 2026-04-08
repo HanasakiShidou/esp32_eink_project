@@ -4,6 +4,7 @@ extern "C" {
 }
 #include "esp32_impl.hpp"
 #include "esp_log.h"
+#include "epd_2in9v2.hpp"
 
 EPaper_2in9v2* epd = nullptr;
 
