@@ -8,8 +8,8 @@
 #include <stdint.h>
 #include <stddef.h>
 #include <string.h>
-#include "SakataOnEsp32ServerImpl.h"
-#include "mqtt_app.h"
+#include "rpc/SakataOnEsp32ServerImpl.h"
+#include "mqtt/mqtt_app.h"
 #include "esp_log.h"
 #include "esp_system.h"
 #include "nvs_flash.h"

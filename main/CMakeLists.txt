@@ -1,12 +1,11 @@
 file (GLOB SOURCES 
     "../epd_cpp/lib/e-Paper/2in9v2/*.cpp"
-    "../epd_cpp/lib/Fonts/*.c"
-#    "../epd_cpp/lib/GUI/*.c"
+    #"../epd_cpp/lib/Fonts/*.c"
     "app_main.c"
-    "mqtt_app.c"
-    "esp32_impl.cpp"
-    "SakataOnEsp32Server.cpp"
-    SakataOnEsp32ServerImpl.cpp
+    "mqtt/mqtt_app.c"
+    "eink/esp32_impl.cpp"
+    "rpc/SakataOnEsp32Server.cpp"
+    "rpc/SakataOnEsp32ServerImpl.cpp"
     )
 
 idf_component_register(SRCS ${SOURCES}

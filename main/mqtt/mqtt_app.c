@@ -45,11 +45,9 @@ void mqtt_send_response(char *data, int length) {
     if (data == NULL)
         return;
     if (length == 0) {
-        free(data);
         return;
     }
     esp_mqtt_client_publish(s_mqtt_client, topic_name(LOGGER), data, length, 1, 0);
-    free(data);
 }
 
 static void log_error_if_nonzero(const char *message, int error_code)
