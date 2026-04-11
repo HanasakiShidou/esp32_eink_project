@@ -72,8 +72,10 @@ bool SakataOnEsp32Server::handle_request(const uint8_t* request, int request_siz
             deserialize<int32_t>(request, xIndex, offset);
             int32_t yIndex;
             deserialize<int32_t>(request, yIndex, offset);
+            int32_t value;
+            deserialize<int32_t>(request, value, offset);
             // Call actual function
-            setDisplayMem(xIndex, yIndex);
+            setDisplayMem(xIndex, yIndex, value);
             response_size = 0;
         }
         break;

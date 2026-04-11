@@ -46,7 +46,9 @@ void app_main(void)
 
     mqtt5_app_start();
 
+    init_sakata_on_esp32();
+
     while(1) {
-        vTaskDelay(pdMS_TO_TICKS(1000));
+        vTaskDelay(pdMS_TO_TICKS(5000));
     }
 }

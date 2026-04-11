@@ -11,7 +11,7 @@ public:
 
     // Pure virtual functions to be implemented by user
     virtual void fillDisplayMem(uint8_t data[4736]) = 0;
-    virtual void setDisplayMem(int32_t xIndex, int32_t yIndex) = 0;
+    virtual void setDisplayMem(int32_t xIndex, int32_t yIndex, int32_t value) = 0;
     virtual void refreshDisplay(uint8_t mode) = 0;
     virtual void directlyDisplay(uint8_t data[4736], uint8_t mode) = 0;
     virtual void fillAndRefresh(uint8_t data[4736], uint8_t mode) = 0;

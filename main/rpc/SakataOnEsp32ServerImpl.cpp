@@ -7,9 +7,11 @@ extern "C" {
 #include "epd_2in9v2.hpp"
 #include "SakataOnEsp32Server.h"
 
+constexpr char TAG[] = "SakataOnEsp32ServerImpl";
+
 static EPaper_2in9v2* epd = nullptr;
 
-static std::array<uint8_t, IMAGE_LENGTH + 500> requestBuffer{};
+//static std::array<uint8_t, IMAGE_LENGTH + 500> requestBuffer{};
 static char reponseBuffer[500] = {0};
 
 // Graph memory
@@ -61,7 +63,7 @@ void createTestPattern(bool& rr)
 class SakataOnEsp32ServerImplement: public SakataOnEsp32Server {
     public:
         void fillDisplayMem(uint8_t data[4736])override;
-        void setDisplayMem(int32_t xIndex, int32_t yIndex)override;
+        void setDisplayMem(int32_t xIndex, int32_t yIndex, int32_t value)override;
         void refreshDisplay(uint8_t mode)override;
         void directlyDisplay(uint8_t data[4736], uint8_t mode)override;
         void fillAndRefresh(uint8_t data[4736], uint8_t mode)override;
@@ -77,8 +79,8 @@ void SakataOnEsp32ServerImplement::fillDisplayMem(uint8_t data[4736]) {
     }
 }
 
-void SakataOnEsp32ServerImplement::setDisplayMem(int32_t xIndex, int32_t yIndex) {
-
+void SakataOnEsp32ServerImplement::setDisplayMem(int32_t xIndex, int32_t yIndex, int32_t value) {
+    setPoint(xIndex, yIndex, value != 0);
 }
 
 void SakataOnEsp32ServerImplement::refreshDisplay(uint8_t mode) {
@@ -86,9 +88,11 @@ void SakataOnEsp32ServerImplement::refreshDisplay(uint8_t mode) {
         // full refresh
         case 0:
             epd->Display(image.data());
+            break;
         // partial refresh
         case 1:
             epd->DisplayPartial(image.data());
+            break;
     }
 }
 
@@ -97,9 +101,11 @@ void SakataOnEsp32ServerImplement::directlyDisplay(uint8_t data[4736], uint8_t m
         // full refresh
         case 0:
             epd->Display(data);
+            break;
         // partial refresh
         case 1:
             epd->DisplayPartial(data);
+            break;
     }
 }
 
@@ -111,9 +117,11 @@ void SakataOnEsp32ServerImplement::fillAndRefresh(uint8_t data[4736], uint8_t mo
         // full refresh
         case 0:
             epd->Display(image.data());
+            break;
         // partial refresh
         case 1:
             epd->DisplayPartial(image.data());
+            break;
     }
 }
 
@@ -125,18 +133,33 @@ int32_t SakataOnEsp32ServerImplement::getStatus() {
     return 0;
 }
 
-//bool handle_request(const uint8_t* request, int request_size, uint8_t* response, int& response_size);
+void debug_image() {
+    printf("Image Buffer:\n");
+    for (int index = 0; index < image.size(); index++) {
+        printf("%02x ",image.at(index));
+        if (index % 30 == 0) {
+            printf("\n");
+        }
+    }
+    printf("\n");
+}
 
 void init_sakata_on_esp32(void) {
     epd = new EPaper_2in9v2(std::unique_ptr<HardwareAPI>(new Esp32Impl()));
     epd->Init();
-    epd->Clear();
+    //epd->Clear();
 }
 
 void mqtt_handle_request(unsigned char *data, int length) {
+    if (data == NULL)
+        return;
     int response_size = 0;
     if (epd) {
         server.handle_request(data, length, reinterpret_cast<uint8_t *>(reponseBuffer), response_size);
+    }
+    if (response_size == 0) {
+        response_size = 1;
+        reponseBuffer[0] = 0x0;
     }
     mqtt_send_response(reponseBuffer, response_size);
 }

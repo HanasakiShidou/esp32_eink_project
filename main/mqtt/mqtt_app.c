@@ -47,7 +47,7 @@ void mqtt_send_response(char *data, int length) {
     if (length == 0) {
         return;
     }
-    esp_mqtt_client_publish(s_mqtt_client, topic_name(LOGGER), data, length, 1, 0);
+    esp_mqtt_client_publish(s_mqtt_client, topic_name(RPC_RESPONSE), data, length, 1, 0);
 }
 
 static void log_error_if_nonzero(const char *message, int error_code)
@@ -80,7 +80,7 @@ static void mqtt5_event_handler(void *handler_args, esp_event_base_t base, int32
         ESP_LOGI(TAG, "MQTT_EVENT_CONNECTED");
         mqtt_log(strdup("Clinet ESP32 online!"));
         msg_id = esp_mqtt_client_subscribe(client, topic_name(RPC_REQUEST), 2);
-        ESP_LOGI(TAG, "sent subscribe successful, msg_id=%d", msg_id);
+        ESP_LOGI(TAG, "sent subscribe successful, msg_id=%d, topic=%s", msg_id, topic_name(RPC_REQUEST));
         break;
     case MQTT_EVENT_DISCONNECTED:
         ESP_LOGI(TAG, "MQTT_EVENT_DISCONNECTED");
@@ -99,7 +99,8 @@ static void mqtt5_event_handler(void *handler_args, esp_event_base_t base, int32
         ESP_LOGI(TAG, "correlation_data is %.*s", event->property->correlation_data_len, event->property->correlation_data);
         ESP_LOGI(TAG, "content_type is %.*s", event->property->content_type_len, event->property->content_type);
         ESP_LOGI(TAG, "TOPIC=%.*s", event->topic_len, event->topic);
-        ESP_LOGI(TAG, "DATA=%.*s", event->data_len, event->data);
+        ESP_LOGI(TAG, "DATA LEN=%d", event->data_len);
+        mqtt_handle_request((unsigned char *)event->data, event->data_len);
         break;
     case MQTT_EVENT_ERROR:
         ESP_LOGI(TAG, "MQTT_EVENT_ERROR");
@@ -121,7 +122,7 @@ void mqtt5_app_start(void)
 {
     esp_mqtt5_connection_property_config_t connect_property = {
         .session_expiry_interval = 10,
-        .maximum_packet_size = 1024,
+        .maximum_packet_size = 5120,
         .receive_maximum = 65535,
         .topic_alias_maximum = 2,
         .request_resp_info = false,

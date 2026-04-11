@@ -17,8 +17,7 @@ void mqtt_log(char *msg);
 /**
  * @brief MQTT /rpc_interface/request 主题的handler
  *
- * @param data 指向接受的数据的指针。该指针指向的内存必须通过 malloc 分配，
- *             函数将接管其控制权（最终由内部任务 free）。不要在调用后再次使用该指针。
+ * @param data 指向接受的数据的指针。
  *             如果传入 NULL，函数会直接返回。
  * 
  * @param length 接受的数据长度，小于等于0值会导致函数直接返回。
