@@ -47,7 +47,7 @@ void mqtt_send_response(char *data, int length) {
     if (length == 0) {
         return;
     }
-    esp_mqtt_client_publish(s_mqtt_client, topic_name(RPC_RESPONSE), data, length, 1, 0);
+    esp_mqtt_client_publish(s_mqtt_client, topic_name(RPC_RESPONSE), data, length, 2, 0);
 }
 
 static void log_error_if_nonzero(const char *message, int error_code)

@@ -8,6 +8,12 @@ functions:
       - name: "data"
         type: "uint8_t[4736]"  # Length of the bitmap
 
+  - name: "clearDisplay"
+    return_type: "void"
+    parameters:
+      - name: "data"
+        type: "int32_t"        # 0 -> black 1-> white
+
   - name: "setDisplayMem"
     return_type: "void"
     parameters:

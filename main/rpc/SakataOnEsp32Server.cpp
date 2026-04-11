@@ -66,7 +66,16 @@ bool SakataOnEsp32Server::handle_request(const uint8_t* request, int request_siz
             response_size = 0;
         }
         break;
-        case 0x02:  // setDisplayMem
+        case 0x02:  // clearDisplay
+        {
+            int32_t data;
+            deserialize<int32_t>(request, data, offset);
+            // Call actual function
+            clearDisplay(data);
+            response_size = 0;
+        }
+        break;
+        case 0x03:  // setDisplayMem
         {
             int32_t xIndex;
             deserialize<int32_t>(request, xIndex, offset);
@@ -79,7 +88,7 @@ bool SakataOnEsp32Server::handle_request(const uint8_t* request, int request_siz
             response_size = 0;
         }
         break;
-        case 0x03:  // refreshDisplay
+        case 0x04:  // refreshDisplay
         {
             uint8_t mode;
             deserialize<uint8_t>(request, mode, offset);
@@ -88,7 +97,7 @@ bool SakataOnEsp32Server::handle_request(const uint8_t* request, int request_siz
             response_size = 0;
         }
         break;
-        case 0x04:  // directlyDisplay
+        case 0x05:  // directlyDisplay
         {
             uint8_t data[4736];
             deserialize_array<uint8_t, 4736>(request, data, offset);
@@ -99,7 +108,7 @@ bool SakataOnEsp32Server::handle_request(const uint8_t* request, int request_siz
             response_size = 0;
         }
         break;
-        case 0x05:  // fillAndRefresh
+        case 0x06:  // fillAndRefresh
         {
             uint8_t data[4736];
             deserialize_array<uint8_t, 4736>(request, data, offset);
@@ -110,7 +119,7 @@ bool SakataOnEsp32Server::handle_request(const uint8_t* request, int request_siz
             response_size = 0;
         }
         break;
-        case 0x06:  // setLed
+        case 0x07:  // setLed
         {
             uint8_t rVal;
             deserialize<uint8_t>(request, rVal, offset);
@@ -123,7 +132,7 @@ bool SakataOnEsp32Server::handle_request(const uint8_t* request, int request_siz
             response_size = 0;
         }
         break;
-        case 0x07:  // getStatus
+        case 0x08:  // getStatus
         {
 
             // Call actual function

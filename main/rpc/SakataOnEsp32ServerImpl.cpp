@@ -63,6 +63,7 @@ void createTestPattern(bool& rr)
 class SakataOnEsp32ServerImplement: public SakataOnEsp32Server {
     public:
         void fillDisplayMem(uint8_t data[4736])override;
+        void clearDisplay(int32_t data)override;
         void setDisplayMem(int32_t xIndex, int32_t yIndex, int32_t value)override;
         void refreshDisplay(uint8_t mode)override;
         void directlyDisplay(uint8_t data[4736], uint8_t mode)override;
@@ -77,6 +78,11 @@ void SakataOnEsp32ServerImplement::fillDisplayMem(uint8_t data[4736]) {
     for (int index = 0; index < image.size(); index++) {
         image.at(index) = data[index];
     }
+}
+
+void SakataOnEsp32ServerImplement::clearDisplay(int32_t data) {
+    clearImage(data != 0);
+    epd->Display(image.data());
 }
 
 void SakataOnEsp32ServerImplement::setDisplayMem(int32_t xIndex, int32_t yIndex, int32_t value) {
