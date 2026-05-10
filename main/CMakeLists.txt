@@ -9,7 +9,7 @@ file (GLOB SOURCES
     )
 
 idf_component_register(SRCS ${SOURCES}
-                    PRIV_REQUIRES mqtt nvs_flash driver esp_netif
+                    PRIV_REQUIRES mqtt nvs_flash driver esp_netif led_strip
                     INCLUDE_DIRS 
                     "."
                     "../epd_cpp/lib/e-Paper"

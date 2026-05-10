@@ -6,10 +6,14 @@ extern "C" {
 #include "esp_log.h"
 #include "epd_2in9v2.hpp"
 #include "SakataOnEsp32Server.h"
+#include "led_strip.h"
 
 constexpr char TAG[] = "SakataOnEsp32ServerImpl";
 
+static constexpr int WS2812_GPIO = 10;
+
 static EPaper_2in9v2* epd = nullptr;
+static led_strip_handle_t led_strip = nullptr;
 
 //static std::array<uint8_t, IMAGE_LENGTH + 500> requestBuffer{};
 static char reponseBuffer[500] = {0};
@@ -132,7 +136,11 @@ void SakataOnEsp32ServerImplement::fillAndRefresh(uint8_t data[4736], uint8_t mo
 }
 
 void SakataOnEsp32ServerImplement::setLed(uint8_t rVal, uint8_t gVal, uint8_t bVal) {
-    // TODO
+    if (led_strip == nullptr) {
+        return;
+    }
+    ESP_ERROR_CHECK(led_strip_set_pixel(led_strip, 0, rVal, gVal, bVal));
+    ESP_ERROR_CHECK(led_strip_refresh(led_strip));
 }
 
 int32_t SakataOnEsp32ServerImplement::getStatus() {
@@ -154,6 +162,23 @@ void init_sakata_on_esp32(void) {
     epd = new EPaper_2in9v2(std::unique_ptr<HardwareAPI>(new Esp32Impl()));
     epd->Init();
     //epd->Clear();
+
+    // Init WS2812 on GPIO10
+    led_strip_config_t strip_config = {
+        .strip_gpio_num = WS2812_GPIO,
+        .max_leds = 1,
+        .led_model = LED_MODEL_WS2812,
+        .color_component_format = LED_STRIP_COLOR_COMPONENT_FMT_RGB,
+    };
+
+    led_strip_rmt_config_t rmt_config = {};
+    rmt_config.resolution_hz = 10 * 1000 * 1000;
+    rmt_config.flags.with_dma = false;
+
+    ESP_ERROR_CHECK(led_strip_new_rmt_device(&strip_config, &rmt_config, &led_strip));
+    // Turn off LED on startup
+    led_strip_set_pixel(led_strip, 0, 0, 0, 0);
+    led_strip_refresh(led_strip);
 }
 
 void mqtt_handle_request(unsigned char *data, int length) {
